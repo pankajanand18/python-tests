@@ -1,3 +1,5 @@
+from sre_parse import isident
+
 __author__ = 'pankaj'
 
 import csv
@@ -12,18 +14,24 @@ def toTitleWord(words):
         new_array.append(word)
     return " ".join(new_array)
 
-def chopArray(array):
+def chopArray(array,titleCase):
     new_array=[]
     for item in array:
         item=item.strip()
-        item=toTitleWord(item)
+        if(titleCase):
+            item=toTitleWord(item)
         new_array.append(item)
     return  new_array
 
-def getSortedArray(array):
-    list=chopArray(array.split(','))
-    list.sort()
-    return list
+def getSortedArray(array,titlecase=True,sortdata=True):
+    data=array
+    if type(array) is list:
+        data=array
+    else:
+        data=chopArray(array.split(','),titlecase)
+    if(sortdata):
+        data.sort()
+    return data
 
 def generateJson(filepath):
     with open(filepath, "rb") as csvfile:
@@ -41,11 +49,11 @@ def generateJson(filepath):
             category = row[0]
             sts_categories.append(category)
             if len(row[2]) > 0:
-                subcategories.update({category: getSortedArray(row[2])})
+                subcategories.update({category: getSortedArray(row[2],False)})
             if len(row[3]) > 3:
-                brands.update({category: getSortedArray(row[3])})
+                brands.update({category: getSortedArray(row[3],False)})
             if len(row[4]) > 0:
-                keywords.update({category: getSortedArray(row[4])})
+                keywords.update({category: getSortedArray(row[4],False,False)})
                 #print row
 
 
@@ -54,11 +62,14 @@ def generateJson(filepath):
         # print brands
         # print keywords
         final_json={}
+        sts_categories=getSortedArray(sts_categories)
+
         final_json.update({'categories':sts_categories})
         final_json.update({'subCategories':subcategories})
         final_json.update({'brands':brands})
         final_json.update({'keywords':keywords})
-        print json.dumps(final_json)
+        print json.dumps(final_json,sort_keys=True,indent=4,separators=(',', ': '))
+
 
 
 generateJson(file_path)
